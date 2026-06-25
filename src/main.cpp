@@ -6,9 +6,9 @@
 #include "ray.h"
 #include "rtweekend.h"
 #include "sphere.h"
+#include "texture.h"
 #include "vec3.h"
 #include <iostream>
-#include <memory>
 #include <thread>
 #include <vector>
 
@@ -54,24 +54,31 @@ void render_chunk(int start_y, int end_y, int image_width, int image_height,
 }
 
 int main() {
-  const int image_width = 400;
-  const int image_height = 225;
-  const int samples_per_pixel = 100;
+  const int image_width = 1280;
+  const int image_height = 720;
+  const int samples_per_pixel = 75;
   const int max_depth = 50;
 
   vec3 background(0, 0, 0);
 
   hittable_list world;
 
-  auto floor_mat = make_shared<lambertian>(color(0.5, 0.5, 0.5));
-  auto red_mat = make_shared<lambertian>(color(0.7, 0.2, 0.2));
-  auto metal_mat = make_shared<metal>(color(0.8, 0.6, 0.2), 0.3);
-  auto light_mat = make_shared<diffuse_light>(vec3(4, 4, 4));
+  auto checker = make_shared<checker_texture>(
+      make_shared<solid_color>(vec3(0.2, 0.3, 0.1)),
+      make_shared<solid_color>(vec3(0.9, 0.9, 0.9)));
+
+  auto floor_mat = make_shared<lambertian>(checker);
+
+  auto earth_tex = make_shared<image_texture>("earthmap.jpg");
+  auto earth_mat = make_shared<lambertian>(earth_tex);
+
+  auto light_mat =
+      make_shared<diffuse_light>(make_shared<solid_color>(vec3(4, 4, 4)));
 
   world.add(make_shared<sphere>(point3(0.0, -1000.0, 0.0), 1000.0, floor_mat));
-  world.add(make_shared<sphere>(point3(-2.0, 0.0, -2.0), 0.5, red_mat));
-  world.add(make_shared<sphere>(point3(2.0, 0.0, -2.0), 0.5, metal_mat));
-  world.add(make_shared<sphere>(point3(0.0, 1.0, -2.0), 1.0, light_mat));
+  world.add(make_shared<sphere>(point3(0.0, 0.5, 0.0), 0.5, earth_mat));
+  world.add(make_shared<sphere>(point3(0.0, 2.0, -1.0), 0.75, light_mat));
+
 
   camera cam(point3(3, 3, 2), point3(0, 0, -1), vec3(0, 1, 0), 40,
              1.0 * image_width / image_height);

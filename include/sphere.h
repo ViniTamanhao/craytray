@@ -3,6 +3,9 @@
 
 #include "hittable.h"
 #include "material.h"
+#include "rtweekend.h"
+#include "vec3.h"
+#include <cmath>
 
 class sphere : public hittable {
 public:
@@ -17,6 +20,14 @@ private:
   point3 center;
   double radius;
   shared_ptr<material> mat_ptr;
+
+  static void get_sphere_uv(const vec3 &p, double &u, double &v) {
+    // p: a unit vector from sphere center to hit point
+    double theta = acos(-p.y());
+    double phi = atan2(-p.z(), p.x()) + pi;
+    u = phi / (2 * pi);
+    v = theta / pi;
+  }
 };
 
 #endif // !SPHERE_H

@@ -3,8 +3,11 @@
 
 #include "hittable.h"
 #include "ray.h"
+#include "rtweekend.h"
+#include "texture.h"
 #include "vec3.h"
 #include <cmath>
+#include <memory>
 
 class material {
 public:
@@ -18,13 +21,13 @@ public:
 
 class lambertian : public material {
 public:
-  lambertian(const vec3 &a) : albedo(a) {}
+  lambertian(shared_ptr<texture> a) : albedo(a) {}
 
   virtual bool scatter(const ray &r_in, const hit_record &rec,
                        vec3 &attenuation, ray &scattered) const override;
 
 private:
-  vec3 albedo;
+  shared_ptr<texture> albedo;
 };
 
 class metal : public material {
@@ -58,17 +61,17 @@ private:
 
 class diffuse_light : public material {
 public:
-  diffuse_light(const vec3 &c) : color(c) {}
+  diffuse_light(shared_ptr<texture> c) : color(c) {}
 
   virtual bool scatter(const ray &r_in, const hit_record &rec,
                        vec3 &attenuation, ray &scattered) const override;
 
   virtual vec3 emitted(double u, double v, const vec3 &p) const override {
-    return color;
+    return color->value(u, v, p);
   }
 
 private:
-  vec3 color;
+  shared_ptr<texture> color;
 };
 
 #endif // !MATERIAL_H
