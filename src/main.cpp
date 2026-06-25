@@ -54,9 +54,9 @@ void render_chunk(int start_y, int end_y, int image_width, int image_height,
 }
 
 int main() {
-  const int image_width = 400;
-  const int image_height = 225;
-  const int samples_per_pixel = 100;
+  const int image_width = 1280;
+  const int image_height = 720;
+  const int samples_per_pixel = 75;
   const int max_depth = 50;
 
   vec3 background(0, 0, 0);
@@ -76,8 +76,8 @@ int main() {
       make_shared<diffuse_light>(make_shared<solid_color>(vec3(4, 4, 4)));
 
   world.add(make_shared<sphere>(point3(0.0, -1000.0, 0.0), 1000.0, floor_mat));
-  world.add(make_shared<sphere>(point3(0.0, 0.0, 0.0), 0.5, earth_mat));
-  world.add(make_shared<sphere>(point3(0.0, 0.5, -1.0), 0.25, light_mat));
+  world.add(make_shared<sphere>(point3(0.0, 0.5, 0.0), 0.5, earth_mat));
+  world.add(make_shared<sphere>(point3(0.0, 2.0, -1.0), 0.75, light_mat));
 
 
   camera cam(point3(3, 3, 2), point3(0, 0, -1), vec3(0, 1, 0), 40,
