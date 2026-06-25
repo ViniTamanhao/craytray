@@ -13,6 +13,7 @@ add_executable(raytracer
   src/hittable_list.cpp
   src/material.cpp
   src/stb_image_impl.cpp
+  src/tiny_obj_impl.cpp
 )
 
 target_include_directories(raytracer PRIVATE include)
