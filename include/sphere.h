@@ -1,6 +1,7 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include "aabb.h"
 #include "hittable.h"
 #include "material.h"
 #include "rtweekend.h"
@@ -15,6 +16,9 @@ public:
 
   bool hit(const ray &r, double ray_tmin, double ray_tmax,
            hit_record &rec) const override;
+
+  virtual bool bounding_box(double time0, double tim1,
+                            aabb &output_box) const override;
 
 private:
   point3 center;

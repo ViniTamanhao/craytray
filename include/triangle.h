@@ -25,25 +25,55 @@ public:
     vec3 pvec = cross(r.direction(), e2);
     double det = dot(e1, pvec);
 
-    if (std::fabs(det) < epsilon) return false;
+    if (std::fabs(det) < epsilon)
+      return false;
     double inv_det = 1.0 / det;
 
     vec3 tvec = r.origin() - v0;
     double u = dot(tvec, pvec) * inv_det;
-    if (u < 0.0 || u > 1.0) return false;
+    if (u < 0.0 || u > 1.0)
+      return false;
 
     vec3 qvec = cross(tvec, e1);
     double v = dot(r.direction(), qvec) * inv_det;
-    if (v < 0.0 || u + v > 1.0) return false;
+    if (v < 0.0 || u + v > 1.0)
+      return false;
 
     double t = dot(e2, qvec) * inv_det;
-    if (t < ray_tmin || t > ray_tmax) return false;
+    if (t < ray_tmin || t > ray_tmax)
+      return false;
 
     rec.t = t;
     rec.p = r.at(t);
     rec.set_face_normal(r, normal);
     rec.mat_ptr = mat_ptr;
 
+    return true;
+  }
+
+  virtual bool bounding_box(double /*time0*/, double /*time1*/,
+                            aabb &output_box) const override {
+    vec3 min_v(fmin(fmin(v0.x(), v0.x() + e1.x()), v0.x() + e2.x()),
+               fmin(fmin(v0.y(), v0.y() + e1.y()), v0.y() + e2.y()),
+               fmin(fmin(v0.z(), v0.z() + e1.z()), v0.z() + e2.z()));
+    vec3 max_v(fmax(fmax(v0.x(), v0.x() + e1.x()), v0.x() + e2.x()),
+               fmax(fmax(v0.y(), v0.y() + e1.y()), v0.y() + e2.y()),
+               fmax(fmax(v0.z(), v0.z() + e1.z()), v0.z() + e2.z()));
+
+    double eps = 1e-6;
+    if (max_v.x() - min_v.x() < eps) {
+      min_v.e[0] -= eps;
+      max_v.e[0] += eps;
+    }
+    if (max_v.y() - min_v.y() < eps) {
+      min_v.e[1] -= eps;
+      max_v.e[1] += eps;
+    }
+    if (max_v.z() - min_v.z() < eps) {
+      min_v.e[2] -= eps;
+      max_v.e[2] += eps;
+    }
+    output_box = aabb(min_v, max_v);
     return true;
   }
 

@@ -1,3 +1,4 @@
+#include "bvh_node.h"
 #include "camera.h"
 #include "color.h"
 #include "hittable.h"
@@ -39,7 +40,7 @@ color ray_color(const ray &r, const vec3 &background, const hittable &world,
 
 void render_chunk(int start_y, int end_y, int image_width, int image_height,
                   int samples_per_pixel, int max_depth, const vec3 &background,
-                  const camera &cam, const hittable_list &world,
+                  const camera &cam, const hittable &world,
                   std::vector<vec3> &image_buffer,
                   std::atomic<int> &rows_completed) {
   for (int j = start_y; j < end_y; ++j) {
@@ -82,8 +83,8 @@ int main() {
   world.add(make_shared<sphere>(point3(1.0, 2.0, -0.5), 0.75, light_mat));
 
   // Soft sky
-  auto sky_mat =
-      make_shared<diffuse_light>(make_shared<solid_color>(vec3(0.15, 0.22, 0.35)));
+  auto sky_mat = make_shared<diffuse_light>(
+      make_shared<solid_color>(vec3(0.15, 0.22, 0.35)));
   world.add(make_shared<sphere>(point3(0, 100, 0), 90, sky_mat));
 
   // Earth
@@ -94,8 +95,13 @@ int main() {
   // Model
   auto model_mat = make_shared<metal>(color(0.8, 0.6, 0.2), 0.05);
   auto model = load_model("assets/monkeyhead.obj", model_mat);
-  world.add(make_shared<translate>(
-      make_shared<hittable_list>(model), vec3(0.0, 0.985, 0.0)));
+  auto model_bvh = make_shared<bvh_node>(model.objects, 0, model.objects.size());
+  world.add(
+      make_shared<translate>(model_bvh, vec3(0.0, 0.985, 0.0)));
+
+  // BVH
+
+  bvh_node bvh_world(world.objects, 0, world.objects.size());
 
   // Camera
   camera cam(point3(5, 3.5, 5), point3(0, 0.3, 0), vec3(0, 1, 0), 40,
@@ -127,11 +133,10 @@ int main() {
     int end_y =
         (t == num_threads - 1) ? image_height : start_y + rows_per_thread;
 
-    threads.push_back(std::thread(render_chunk, start_y, end_y, image_width,
-                                  image_height, samples_per_pixel, max_depth,
-                                  std::ref(background), std::ref(cam),
-                                  std::ref(world), std::ref(image_buffer),
-                                  std::ref(rows_completed)));
+    threads.push_back(std::thread(
+        render_chunk, start_y, end_y, image_width, image_height,
+        samples_per_pixel, max_depth, std::ref(background), std::ref(cam),
+        std::ref(bvh_world), std::ref(image_buffer), std::ref(rows_completed)));
   }
 
   for (auto &t : threads) {
